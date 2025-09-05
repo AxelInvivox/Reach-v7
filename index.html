@@ -79,7 +79,7 @@
 
     /* —— Modal —— */
     dialog.modal{
-      border:0; padding:0; border-radius:16px; width:min(92vw, 720px); max-width:720px; 
+      border:0; padding:0; border-radius:16px; width:min(92vw, 740px); max-width:740px; 
       box-shadow: 0 24px 60px rgba(7,81,89,.25);
       overflow:hidden;
       animation: modalIn .18s ease-out;
@@ -100,16 +100,44 @@
       border-radius:10px; cursor:pointer; font-size:18px; line-height:1;
     }
     .modal-body{ padding:16px; background:#fff; }
-    .modal-pre{
-      white-space:pre-wrap; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size:14px; line-height:1.45; color:#073e44;
-      background: #f7fdfe; border:1px dashed #cdeaf0; border-radius:12px; padding:14px;
+
+    /* Summary (pills + stat) */
+    .summary{
+      display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;
+      margin-bottom:14px;
     }
+    .pills{ display:flex; gap:8px; flex-wrap:wrap; }
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      background: var(--ocean-100); color: var(--ocean-700);
+      border:1px solid #d8e6ea; border-radius:999px; padding:6px 10px; font-weight:600; font-size:13px;
+    }
+    .stat{ margin-left:auto; text-align:right; }
+    .stat-label{ font-size:12px; color:#4b7e86; margin:0; }
+    .stat-number{ margin:0; font-size:30px; font-weight:800; color: var(--ocean-900); line-height:1.15; }
+
+    /* CTA zone */
+    .cta{
+      display:flex; align-items:center; justify-content:flex-end; gap:10px; flex-wrap:wrap;
+      margin:14px 0 8px;
+    }
+
+    /* CTA text (2 phrases) */
+    .cta-text{
+      margin:8px 0 6px; color: var(--ocean-900);
+    }
+    .cta-text p{ margin:0 0 6px; }
+
+    /* Status line */
+    .status{ font-size:12px; margin-top:10px; }
+    .status.ok{ color:#0a7f4b; }     /* subtle green */
+    .status.warn{ color:#8a5a00; }   /* subtle amber */
 
     @media (max-width:640px){
       header h1{ font-size:18px; }
       header p{ font-size:13px; }
       .grid{ grid-template-columns:1fr; }
+      .stat{ width:100%; text-align:left; }
     }
   </style>
 </head>
@@ -188,14 +216,34 @@
 
   <footer id="footer-text">© 2025 Invivox. Tous droits réservés.</footer>
 
-  <!-- —— Modal (Variante A avec Header) —— -->
+  <!-- —— Modal (Variante A + résumé + CTA) —— -->
   <dialog id="resultModal" class="modal" aria-labelledby="modal-title" aria-modal="true">
     <div class="modal-header">
       <h3 id="modal-title" class="modal-title">Votre résultat</h3>
       <button type="button" id="modalClose" class="modal-close" aria-label="Fermer">×</button>
     </div>
     <div class="modal-body">
-      <pre id="modalPre" class="modal-pre"></pre>
+      <div class="summary">
+        <div class="pills">
+          <span class="pill" id="pillRegion">🌍 <span id="pillRegionLabel">Région</span>: <strong id="pillRegionValue">—</strong></span>
+          <span class="pill" id="pillSpec">🎯 <span id="pillSpecLabel">Spécialité</span>: <strong id="pillSpecValue">—</strong></span>
+        </div>
+        <div class="stat">
+          <p class="stat-label" id="statLabel">Reach estimé</p>
+          <p class="stat-number" id="statNumber">—</p>
+        </div>
+      </div>
+
+      <div class="cta">
+        <a id="modalDemoBtn" class="btn" href="https://calendly.com/adevige-invivox/30min" target="_blank" rel="noopener noreferrer">Demander une démo</a>
+      </div>
+
+      <div class="cta-text">
+        <p id="modalCta1">Vous avez l’audience. Nous avons la méthode pour l’activer.</p>
+        <p id="modalCta2">Passez du reach aux résultats : en 30 minutes, co-construisons un plan d’activation (canaux, pression média, calendrier) pour convertir cette audience.</p>
+      </div>
+
+      <div id="modalStatus" class="status ok"></div>
     </div>
   </dialog>
 
@@ -210,7 +258,7 @@
       US: { MG: 24000, Infirmier: 400000, Dermatologues: 2600, Pharmaciens: 51000 }
     };
 
-    // —— I18N —— (avec CTA mis à jour)
+    // —— I18N —— (CTA = 2 phrases)
     const i18n = {
       fr: {
         docTitle: 'Calculateur de Reach - Invivox',
@@ -253,21 +301,16 @@
           blocked: 'Merci d’utiliser une adresse professionnelle (domaine perso bloqué).',
           blockedDomain: (d)=> `Le domaine "${d}" est bloqué.`
         },
-        modal: { title: 'Votre résultat', closeLabel: 'Fermer' },
-        txt: {
-          banner: 'INVIVOX · Calculateur de Reach PDS',
-          results: 'RÉSULTATS',
+        modal: {
+          title: 'Votre résultat',
+          closeLabel: 'Fermer',
           region: 'Région',
           spec: 'Spécialité',
-          reach: 'Reach estimé',
-          reachUnit: (n)=> `${n.toLocaleString('fr-FR')} professionnels`,
-          cta: [
-            "Vous avez l’audience. Nous avons la méthode pour l’activer.",
-            "Passez du reach aux résultats : en 30 minutes, co-construisons un plan d’activation (canaux, pression média, calendrier) pour convertir cette audience.",
-            "",
-            "Démo (30 min) : https://calendly.com/adevige-invivox/30min",
-            "Contact : adevige@invivox.com"
-          ]
+          reachLabel: 'Reach estimé',
+          saved: 'Enregistré dans Google Sheets',
+          notSaved: 'Note : envoi vers Google Sheets non confirmé.',
+          cta1: "Vous avez l’audience. Nous avons la méthode pour l’activer.",
+          cta2: "Passez du reach aux résultats : en 30 minutes, co-construisons un plan d’activation (canaux, pression média, calendrier) pour convertir cette audience."
         }
       },
       en: {
@@ -311,21 +354,16 @@
           blocked: 'Please use a professional email address (personal domains are blocked).',
           blockedDomain: (d)=> `The domain "${d}" is blocked.`
         },
-        modal: { title: 'Your result', closeLabel: 'Close' },
-        txt: {
-          banner: 'INVIVOX · HCP Reach Calculator',
-          results: 'RESULTS',
+        modal: {
+          title: 'Your result',
+          closeLabel: 'Close',
           region: 'Region',
           spec: 'Specialty',
-          reach: 'Estimated reach',
-          reachUnit: (n)=> `${n.toLocaleString('en-US')} HCPs`,
-          cta: [
-            "You have the audience. We have the playbook to activate it.",
-            "Turn reach into results: in 30 minutes, let's co-build an activation plan (channels, media pressure, timeline) to convert this audience.",
-            "",
-            "Demo (30 min): https://calendly.com/adevige-invivox/30min",
-            "Contact: adevige@invivox.com"
-          ]
+          reachLabel: 'Estimated reach',
+          saved: 'Saved to Google Sheets',
+          notSaved: 'Note: lead save not confirmed.',
+          cta1: "You have the audience. We have the playbook to activate it.",
+          cta2: "Turn reach into results: in 30 minutes, let's co-build an activation plan (channels, media pressure, timeline) to convert this audience."
         }
       }
     };
@@ -357,17 +395,25 @@
 
     // Modal
     const modal = document.getElementById('resultModal');
-    const modalPre = document.getElementById('modalPre');
     const modalTitle = document.getElementById('modal-title');
     const modalClose = document.getElementById('modalClose');
+    const pillRegionLabel = document.getElementById('pillRegionLabel');
+    const pillRegionValue = document.getElementById('pillRegionValue');
+    const pillSpecLabel = document.getElementById('pillSpecLabel');
+    const pillSpecValue = document.getElementById('pillSpecValue');
+    const statLabel = document.getElementById('statLabel');
+    const statNumber = document.getElementById('statNumber');
+    const modalDemoBtn = document.getElementById('modalDemoBtn');
+    const modalCta1 = document.getElementById('modalCta1');
+    const modalCta2 = document.getElementById('modalCta2');
+    const modalStatus = document.getElementById('modalStatus');
 
-    // Region options text
+    // Options text
     const optRegionPlaceholder = document.getElementById('opt-region-placeholder');
     const optRegionFr = document.getElementById('opt-region-fr');
     const optRegionEu = document.getElementById('opt-region-eu');
     const optRegionUs = document.getElementById('opt-region-us');
 
-    // Specialty options text
     const optSpecPlaceholder = document.getElementById('opt-spec-placeholder');
     const optSpecMg = document.getElementById('opt-spec-mg');
     const optSpecInf = document.getElementById('opt-spec-infirmier');
@@ -407,12 +453,11 @@
       document.getElementById('poste').placeholder = t('placeholders.poste');
       emailEl.placeholder = t('placeholders.email');
 
-      // Region labels
+      // Region & spec labels
       optRegionFr.textContent = t('regions.France');
       optRegionEu.textContent = t('regions.Europe');
       optRegionUs.textContent = t('regions.US');
 
-      // Specialty labels
       optSpecMg.textContent = t('specs.MG');
       optSpecInf.textContent = t('specs.Infirmier');
       optSpecDerm.textContent = t('specs.Dermatologues');
@@ -423,9 +468,15 @@
       demoBtn.textContent = t('buttons.demo');
       footerText.textContent = t('footer');
 
-      // Modal labels
+      // Modal labels + CTA
       modalTitle.textContent = t('modal.title');
       modalClose.setAttribute('aria-label', t('modal.closeLabel'));
+      pillRegionLabel.textContent = t('modal.region');
+      pillSpecLabel.textContent = t('modal.spec');
+      statLabel.textContent = t('modal.reachLabel');
+      modalDemoBtn.textContent = t('buttons.demo');
+      modalCta1.textContent = t('modal.cta1');
+      modalCta2.textContent = t('modal.cta2');
     }
 
     // Lang buttons
@@ -481,35 +532,23 @@
       return { region, regionLabel, specialite, specialiteLabel, baseReach };
     }
 
-    // —— Style A (single) —— 
-    function buildTextReport(values){
-      const { regionLabel, specialiteLabel, baseReach } = values;
-      const title = t('txt.banner');
-      const width = 64;
-      const padLine = (s)=>{
-        const left = Math.floor((width - 2 - s.length)/2);
-        const right = width - 2 - s.length - left;
-        return '│' + ' '.repeat(Math.max(0,left)) + s + ' '.repeat(Math.max(0,right)) + '│';
-      };
-      const line = '─'.repeat(width-2);
-      return [
-        '┌'+line+'┐',
-        padLine(title),
-        '└'+line+'┘',
-        '',
-        t('txt.results'),
-        `- ${t('txt.region').padEnd(13,' ')}: ${regionLabel}`,
-        `- ${t('txt.spec').padEnd(13,' ')}: ${specialiteLabel}`,
-        `- ${t('txt.reach').padEnd(13,' ')}: ${t('txt.reachUnit')(baseReach)}`,
-        '',
-        ...t('txt.cta')
-      ].join('\n');
-    }
-
     // —— Modal controls —— 
-    function openModal(text){
-      modalPre.textContent = text;
-      modalTitle.textContent = t('modal.title');
+    function openModal(values, savedOk){
+      // Fill summary
+      pillRegionValue.textContent = values.regionLabel;
+      pillSpecValue.textContent = values.specialiteLabel;
+      statNumber.textContent = (lang==='fr' ? values.baseReach.toLocaleString('fr-FR') : values.baseReach.toLocaleString('en-US'));
+
+      // Status
+      if(savedOk){
+        modalStatus.className = 'status ok';
+        modalStatus.textContent = t('modal.saved');
+      }else{
+        modalStatus.className = 'status warn';
+        modalStatus.textContent = t('modal.notSaved');
+      }
+
+      // Open
       if(typeof modal.showModal === 'function'){ modal.showModal(); }
       else { modal.setAttribute('open',''); } // fallback
     }
@@ -519,7 +558,6 @@
     }
     modalClose.addEventListener('click', closeModal);
     modal.addEventListener('cancel', (e)=>{ e.preventDefault(); closeModal(); }); // Esc
-    // click-outside to close
     modal.addEventListener('click', (e)=>{
       const rect = modal.getBoundingClientRect();
       const inDialog = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
@@ -568,6 +606,7 @@
 
       downloadBtn.disabled = true;
 
+      let savedOk = true;
       try{
         const result = await saveLead(values);
         if(result && result.result === 'error'){
@@ -577,11 +616,11 @@
         }
       }catch(err){
         console.warn('Lead save error:', err);
+        savedOk = false;
         setToast(t('toasts.leadNotConfirmed'));
       }
 
-      const txt = buildTextReport(values);
-      openModal(txt);
+      openModal(values, savedOk);
       setToast(t('toasts.resultReady'));
 
       form.reset();
