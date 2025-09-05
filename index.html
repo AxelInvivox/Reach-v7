@@ -9,16 +9,16 @@
   <style>
     /* —— Invivox Theme – Ocean Line —— */
     :root{
-      --ocean-50:#e7f9fb; /* background */
+      --ocean-50:#e7f9fb;
       --ocean-100:#b5ecf2;
       --ocean-200:#92e2eb;
       --ocean-300:#41cddd;
       --ocean-400:#11c1d4;
-      --ocean-500:#0fb0c1; /* accent / CTA */
+      --ocean-500:#0fb0c1;
       --ocean-600:#1f92ac;
       --ocean-700:#0c8997;
       --ocean-800:#096a75;
-      --ocean-900:#075159; /* strong text */
+      --ocean-900:#075159;
     }
 
     * { box-sizing: border-box; }
@@ -96,10 +96,6 @@
       background: linear-gradient(90deg, var(--ocean-500), var(--ocean-300));
       display:flex; align-items:center; justify-content:space-between; gap:10px;
     }
-    .brand{
-      display:flex; align-items:center; gap:10px;
-    }
-    .brand img{ height:22px; width:auto; display:block; }
     .modal-title{ margin:0; font-size:18px; font-weight:700; }
     .modal-close{
       border:0; background:rgba(255,255,255,.18); color:#fff; width:34px; height:34px; 
@@ -107,45 +103,42 @@
     }
     .modal-body{ padding:16px; background:#fff; }
 
-    /* Summary centré */
+    /* —— Résumé recentré —— */
     .summary{
-      display:flex; flex-direction:column; align-items:center; gap:12px; 
+      display:flex; flex-direction:column; align-items:center; gap:14px; 
       margin-bottom:14px;
     }
-    .pills{ display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
+    .pills{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; }
     .pill{
-      display:inline-flex; align-items:center; gap:6px;
+      display:inline-flex; align-items:center; gap:8px;
       background: var(--ocean-100); color: var(--ocean-700);
-      border:1px solid #d8e6ea; border-radius:999px; padding:6px 10px; font-weight:600; font-size:13px;
+      border:1px solid #d8e6ea; border-radius:12px; padding:8px 12px; 
+      font-weight:700; font-size:14px;  /* ← plus grand */
     }
     .stat{ text-align:center; }
     .stat-label{ font-size:12px; color:#4b7e86; margin:0; }
     .stat-number{ margin:0; font-size:36px; font-weight:800; color: var(--ocean-900); line-height:1.15; }
 
-    /* Texte CTA (2 phrases) */
+    /* —— Texte CTA (2 phrases) —— */
     .cta-text{
-      margin:10px 0 14px; 
+      margin:12px 0 16px; 
       font-family: Figtree, Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-      line-height: 1.7; font-size: 16px; color: var(--ocean-900);
+      line-height: 1.75; font-size: 16px; color: var(--ocean-900);
     }
-    .cta-text p{ margin:0 0 8px; }
+    .cta-text p{ margin:0 0 10px; }
     .cta-text strong{ font-weight:700; }
 
-    /* CTA button en bas */
+    /* —— CTA button en bas —— */
     .cta{
       display:flex; align-items:center; justify-content:center; 
-      margin: 4px 0 8px;
+      margin: 4px 0 2px;
     }
-
-    /* Status line */
-    .status{ font-size:12px; margin-top:10px; text-align:center; }
-    .status.ok{ color:#0a7f4b; }     /* subtle green */
-    .status.warn{ color:#8a5a00; }   /* subtle amber */
 
     @media (max-width:640px){
       header h1{ font-size:18px; }
       header p{ font-size:13px; }
       .grid{ grid-template-columns:1fr; }
+      .pill{ padding:8px 12px; font-size:14px; }
       .stat-number{ font-size:34px; }
     }
   </style>
@@ -225,13 +218,10 @@
 
   <footer id="footer-text">© 2025 Invivox. Tous droits réservés.</footer>
 
-  <!-- —— Modal (header avec logo + résumé centré + texte + CTA en bas) —— -->
+  <!-- —— Modal (header sans logo + résumé centré + texte + CTA en bas) —— -->
   <dialog id="resultModal" class="modal" aria-labelledby="modal-title" aria-modal="true">
     <div class="modal-header">
-      <div class="brand">
-        <img id="modalLogo" alt="Invivox" />
-        <h3 id="modal-title" class="modal-title">Votre résultat</h3>
-      </div>
+      <h3 id="modal-title" class="modal-title">Votre résultat</h3>
       <button type="button" id="modalClose" class="modal-close" aria-label="Fermer">×</button>
     </div>
     <div class="modal-body">
@@ -254,14 +244,11 @@
       <div class="cta">
         <a id="modalDemoBtn" class="btn" href="https://calendly.com/adevige-invivox/30min" target="_blank" rel="noopener noreferrer">Planifier un rdv</a>
       </div>
-
-      <div id="modalStatus" class="status ok"></div>
     </div>
   </dialog>
 
   <script>
-    // —— CONFIG —— (logo configurable)
-    const LOGO_URL = 'https://invivox.com/favicon.ico'; // remplace par le logo officiel si besoin
+    // —— CONFIG —— 
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzS6-DukqRR4lAJhiIg2fR5FpNJ2tWEDEjmScu5h6VI5SPAmaKy4npO-1l-bOFtiOwvPg/exec';
 
     // —— Data ——
@@ -271,7 +258,7 @@
       US: { MG: 24000, Infirmier: 400000, Dermatologues: 2600, Pharmaciens: 51000 }
     };
 
-    // —— I18N —— (bilingue + bouton modal spécifique)
+    // —— I18N —— (bilingue, sans statut Google Sheets dans la modale)
     const i18n = {
       fr: {
         docTitle: 'Calculateur de Reach - Invivox',
@@ -307,8 +294,6 @@
           region: 'Région',
           spec: 'Spécialité',
           reachLabel: 'Reach estimé',
-          saved: 'Enregistré dans Google Sheets',
-          notSaved: 'Note : envoi vers Google Sheets non confirmé.',
           cta1: '<strong>Vous avez l’audience.</strong> <strong>Nous avons la méthode</strong> pour l’activer.',
           cta2: '<strong>Passez du reach aux résultats</strong> : en <strong>30 minutes</strong>, co-construisons un plan d’activation (canaux, pression média, calendrier) pour convertir cette audience.',
           ctaBtn: 'Planifier un rdv'
@@ -361,8 +346,6 @@
           region: 'Region',
           spec: 'Specialty',
           reachLabel: 'Estimated reach',
-          saved: 'Saved to Google Sheets',
-          notSaved: 'Note: lead save not confirmed.',
           cta1: '<strong>You have the audience.</strong> We have the <strong>playbook</strong> to activate it.',
           cta2: '<strong>Turn reach into results</strong>: in <strong>30 minutes</strong>, let’s co-build an activation plan (channels, media pressure, timeline) to convert this audience.',
           ctaBtn: 'Schedule a meeting'
@@ -410,7 +393,6 @@
 
     // Modal
     const modal = document.getElementById('resultModal');
-    const modalLogo = document.getElementById('modalLogo');
     const modalTitle = document.getElementById('modal-title');
     const modalClose = document.getElementById('modalClose');
     const pillRegionLabel = document.getElementById('pillRegionLabel');
@@ -422,7 +404,6 @@
     const modalDemoBtn = document.getElementById('modalDemoBtn');
     const modalCta1 = document.getElementById('modalCta1');
     const modalCta2 = document.getElementById('modalCta2');
-    const modalStatus = document.getElementById('modalStatus');
 
     // Options text
     const optRegionPlaceholder = document.getElementById('opt-region-placeholder');
@@ -485,15 +466,12 @@
       footerText.textContent = t('footer');
 
       // Modal labels + CTA
-      modalLogo.src = LOGO_URL;
-      modalLogo.alt = 'Invivox';
       modalTitle.textContent = t('modal.title');
       modalClose.setAttribute('aria-label', t('modal.closeLabel'));
       pillRegionLabel.textContent = t('modal.region');
       pillSpecLabel.textContent = t('modal.spec');
       statLabel.textContent = t('modal.reachLabel');
       modalDemoBtn.textContent = t('modal.ctaBtn');
-      // Insert CTA rich text (avec <strong>)
       modalCta1.innerHTML = t('modal.cta1');
       modalCta2.innerHTML = t('modal.cta2');
     }
@@ -538,7 +516,7 @@
     function compute(){
       const region = regionEl.value;
       const regionLabel = regionEl.options[regionEl.selectedIndex]?.textContent || region;
-      const specialite = specEl.value; // data key
+      const specialite = specEl.value;
       const specialiteLabel = specEl.options[specEl.selectedIndex]?.textContent || specialite;
       if(!region || !specialite) return null;
       const baseReach = data[region][specialite];
@@ -546,24 +524,15 @@
     }
 
     // —— Modal controls —— 
-    function openModal(values, savedOk){
+    function openModal(values){
       // Fill summary
       pillRegionValue.textContent = values.regionLabel;
       pillSpecValue.textContent = values.specialiteLabel;
       statNumber.textContent = (lang==='fr' ? values.baseReach.toLocaleString('fr-FR') : values.baseReach.toLocaleString('en-US'));
 
-      // Status
-      if(savedOk){
-        modalStatus.className = 'status ok';
-        modalStatus.textContent = t('modal.saved');
-      }else{
-        modalStatus.className = 'status warn';
-        modalStatus.textContent = t('modal.notSaved');
-      }
-
       // Open
       if(typeof modal.showModal === 'function'){ modal.showModal(); }
-      else { modal.setAttribute('open',''); } // fallback
+      else { modal.setAttribute('open',''); }
     }
     function closeModal(){
       if(typeof modal.close === 'function'){ modal.close(); }
@@ -619,21 +588,14 @@
 
       downloadBtn.disabled = true;
 
-      let savedOk = true;
       try{
-        const result = await saveLead(values);
-        if(result && result.result === 'error'){
-          setToast(result.message || t('toasts.emailRejected'));
-          downloadBtn.disabled = false;
-          return;
-        }
+        await saveLead(values); // on envoie, sans afficher de statut dans la modale
       }catch(err){
         console.warn('Lead save error:', err);
-        savedOk = false;
         setToast(t('toasts.leadNotConfirmed'));
       }
 
-      openModal(values, savedOk);
+      openModal(values);
       setToast(t('toasts.resultReady'));
 
       form.reset();
@@ -641,7 +603,6 @@
     });
 
     // init (default FR)
-    document.getElementById('modalLogo').src = LOGO_URL;
     applyLang();
     checkValidity();
   </script>
