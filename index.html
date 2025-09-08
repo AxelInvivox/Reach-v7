@@ -218,7 +218,7 @@
 
   <footer id="footer-text">© 2025 Invivox. Tous droits réservés.</footer>
 
-  <!-- —— Modal (header sans logo + résumé centré + texte + CTA en bas) —— -->
+  <!-- —— Modal —— -->
   <dialog id="resultModal" class="modal" aria-labelledby="modal-title" aria-modal="true">
     <div class="modal-header">
       <h3 id="modal-title" class="modal-title">Votre résultat</h3>
@@ -248,8 +248,8 @@
   </dialog>
 
   <script>
-    // —— CONFIG —— 
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzS6-DukqRR4lAJhiIg2fR5FpNJ2tWEDEjmScu5h6VI5SPAmaKy4npO-1l-bOFtiOwvPg/exec';
+    // —— CONFIG ——  (URL mis à jour)
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzO7aUrjKV9LMmiKi57WWNChMjfmigbfueaXMltKa63sOPB3nWOfYssIfbcholpsOXu2A/exec';
 
     // —— Data ——
     const data = {
@@ -258,7 +258,7 @@
       US: { MG: 24000, Infirmier: 400000, Dermatologues: 2600, Pharmaciens: 51000 }
     };
 
-    // —— I18N —— (bilingue, sans statut Google Sheets dans la modale)
+    // —— I18N —— 
     const i18n = {
       fr: {
         docTitle: 'Calculateur de Reach - Invivox',
@@ -516,7 +516,7 @@
     function compute(){
       const region = regionEl.value;
       const regionLabel = regionEl.options[regionEl.selectedIndex]?.textContent || region;
-      const specialite = specEl.value;
+      const specialite = specEl.value; // data key
       const specialiteLabel = specEl.options[specEl.selectedIndex]?.textContent || specialite;
       if(!region || !specialite) return null;
       const baseReach = data[region][specialite];
@@ -589,7 +589,7 @@
       downloadBtn.disabled = true;
 
       try{
-        await saveLead(values); // on envoie, sans afficher de statut dans la modale
+        await saveLead(values);
       }catch(err){
         console.warn('Lead save error:', err);
         setToast(t('toasts.leadNotConfirmed'));
