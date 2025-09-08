@@ -19,6 +19,9 @@
       --ocean-700:#0c8997;
       --ocean-800:#096a75;
       --ocean-900:#075159;
+      --danger-bg:#fff3f3;
+      --danger-border:#ffd3d3;
+      --danger-text:#9b1c1c;
     }
 
     * { box-sizing: border-box; }
@@ -77,6 +80,18 @@
 
     .toast{ margin-top:8px; font-size:14px; color: var(--ocean-800); display:none; }
 
+    .error-banner{
+      display:none;
+      width:100%;
+      background: var(--danger-bg);
+      border:1px solid var(--danger-border);
+      color: var(--danger-text);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:14px;
+      margin-top:8px;
+    }
+
     footer{ text-align:center; padding:20px; color: var(--ocean-900); background: var(--ocean-100); }
 
     /* —— Modal —— */
@@ -103,7 +118,6 @@
     }
     .modal-body{ padding:16px; background:#fff; }
 
-    /* —— Résumé recentré —— */
     .summary{
       display:flex; flex-direction:column; align-items:center; gap:14px; 
       margin-bottom:14px;
@@ -113,13 +127,12 @@
       display:inline-flex; align-items:center; gap:8px;
       background: var(--ocean-100); color: var(--ocean-700);
       border:1px solid #d8e6ea; border-radius:12px; padding:8px 12px; 
-      font-weight:700; font-size:14px;  /* ← plus grand */
+      font-weight:700; font-size:14px;
     }
     .stat{ text-align:center; }
     .stat-label{ font-size:12px; color:#4b7e86; margin:0; }
     .stat-number{ margin:0; font-size:36px; font-weight:800; color: var(--ocean-900); line-height:1.15; }
 
-    /* —— Texte CTA (2 phrases) —— */
     .cta-text{
       margin:12px 0 16px; 
       font-family: Figtree, Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
@@ -128,7 +141,6 @@
     .cta-text p{ margin:0 0 10px; }
     .cta-text strong{ font-weight:700; }
 
-    /* —— CTA button en bas —— */
     .cta{
       display:flex; align-items:center; justify-content:center; 
       margin: 4px 0 2px;
@@ -211,6 +223,9 @@
           <a id="demoBtn" class="btn secondary" href="https://calendly.com/adevige-invivox/30min" target="_blank" rel="noopener noreferrer">Demander une démo</a>
         </div>
 
+        <!-- Bandeau d'erreur -->
+        <div id="errorBanner" class="error-banner" role="alert"></div>
+
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
       </form>
     </section>
@@ -248,7 +263,7 @@
   </dialog>
 
   <script>
-    // —— CONFIG ——  (URL mis à jour)
+    // —— CONFIG ——  (URL Apps Script mis à jour)
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzO7aUrjKV9LMmiKi57WWNChMjfmigbfueaXMltKa63sOPB3nWOfYssIfbcholpsOXu2A/exec';
 
     // —— Data ——
@@ -310,6 +325,9 @@
           example: "Exemple : prenom.nom@entreprise.com",
           blocked: 'Merci d’utiliser une adresse professionnelle (domaine perso bloqué).',
           blockedDomain: (d)=> `Le domaine "${d}" est bloqué.`
+        },
+        errors: {
+          limitReached: 'Limite atteinte : 3 demandes ont déjà été effectuées au cours des 30 derniers jours pour cette adresse.'
         }
       },
       en: {
@@ -362,6 +380,9 @@
           example: 'Example: firstname.lastname@company.com',
           blocked: 'Please use a professional email address (personal domains are blocked).',
           blockedDomain: (d)=> `The domain "${d}" is blocked.`
+        },
+        errors: {
+          limitReached: 'Limit reached: 3 requests were already made in the last 30 days for this address.'
         }
       }
     };
@@ -377,6 +398,7 @@
     const downloadBtn = document.getElementById('downloadBtn');
     const toast = document.getElementById('toast');
     const consentEl = document.getElementById('consent');
+    const errorBanner = document.getElementById('errorBanner');
 
     // Labels / text nodes
     const titleEl = document.getElementById('title');
@@ -484,6 +506,7 @@
         btn.classList.add('active');
         lang = btn.dataset.lang;
         applyLang();
+        clearError();
         checkValidity();
       });
     });
@@ -523,14 +546,21 @@
       return { region, regionLabel, specialite, specialiteLabel, baseReach };
     }
 
+    function showError(msg){
+      errorBanner.textContent = msg;
+      errorBanner.style.display = 'block';
+      errorBanner.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+    function clearError(){
+      errorBanner.textContent = '';
+      errorBanner.style.display = 'none';
+    }
+
     // —— Modal controls —— 
     function openModal(values){
-      // Fill summary
       pillRegionValue.textContent = values.regionLabel;
       pillSpecValue.textContent = values.specialiteLabel;
       statNumber.textContent = (lang==='fr' ? values.baseReach.toLocaleString('fr-FR') : values.baseReach.toLocaleString('en-US'));
-
-      // Open
       if(typeof modal.showModal === 'function'){ modal.showModal(); }
       else { modal.setAttribute('open',''); }
     }
@@ -573,33 +603,51 @@
     }
 
     // —— Events ——
-    form.addEventListener('input', checkValidity);
-    emailEl.addEventListener('input', checkValidity);
-    regionEl.addEventListener('change', checkValidity);
-    specEl.addEventListener('change', checkValidity);
-    consentEl.addEventListener('change', checkValidity);
+    form.addEventListener('input', ()=>{ clearError(); checkValidity(); });
+    emailEl.addEventListener('input', ()=>{ clearError(); checkValidity(); });
+    regionEl.addEventListener('change', ()=>{ clearError(); checkValidity(); });
+    specEl.addEventListener('change', ()=>{ clearError(); checkValidity(); });
+    consentEl.addEventListener('change', ()=>{ clearError(); checkValidity(); });
 
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
+      clearError();
       validateEmailField();
       if(!form.checkValidity()) { form.reportValidity(); return; }
+
       const values = compute();
       if(!values){ setToast(t('toasts.selectMissing')); return; }
 
       downloadBtn.disabled = true;
 
       try{
-        await saveLead(values);
+        const result = await saveLead(values);
+
+        if(result && result.result === 'error'){
+          // Si le serveur renvoie une limite atteinte, on n'ouvre PAS la modale
+          const rawMsg = (result.message || '').toLowerCase();
+          if(rawMsg.includes('limite') || rawMsg.includes('limit')){
+            showError(lang==='fr' ? i18n.fr.errors.limitReached : i18n.en.errors.limitReached);
+          }else{
+            showError(result.message || (lang==='fr' ? i18n.fr.toasts.emailRejected : i18n.en.toasts.emailRejected));
+          }
+          downloadBtn.disabled = false;
+          return;
+        }
+
+        // OK -> on affiche la modale
+        openModal(values);
+        setToast(lang==='fr' ? i18n.fr.toasts.resultReady : i18n.en.toasts.resultReady);
+
+        form.reset();
+        checkValidity();
       }catch(err){
         console.warn('Lead save error:', err);
-        setToast(t('toasts.leadNotConfirmed'));
+        // En cas d'erreur réseau/serveur non liée à la limite, on peut afficher un toast générique
+        setToast(lang==='fr' ? i18n.fr.toasts.leadNotConfirmed : i18n.en.toasts.leadNotConfirmed);
+        // (option : ne pas ouvrir la modale ici pour rester strict — à toi de choisir)
+        downloadBtn.disabled = false;
       }
-
-      openModal(values);
-      setToast(t('toasts.resultReady'));
-
-      form.reset();
-      checkValidity();
     });
 
     // init (default FR)
